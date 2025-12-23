@@ -1,56 +1,72 @@
-import classNames from 'classnames';
 import React, { useState } from 'react';
 
-type Props = {
-  name: string;
+interface TextFieldProps {
+  name?: string;
+  label: string;
   value: string;
-  label?: string;
-  placeholder?: string;
+  onChange: (value: string) => void;
   required?: boolean;
-  onChange?: (newValue: string) => void;
-};
-
-function getRandomDigits() {
-  return Math.random().toFixed(16).slice(2);
+  validate?: (value: string) => string | null;
+  [key: string]: unknown; // ← для data-cy
 }
 
-export const TextField: React.FC<Props> = ({
+export const TextField: React.FC<TextFieldProps> = ({
   name,
+  label,
   value,
-  label = name,
-  placeholder = `Enter ${label}`,
+  onChange,
   required = false,
-  onChange = () => {},
+  validate,
+  ...rest // ← data-cy сюди
 }) => {
-  // generate a unique id once on component load
-  const [id] = useState(() => `${name}-${getRandomDigits()}`);
-
-  // To show errors only if the field was touched (onBlur)
+  const [error, setError] = useState('');
   const [touched, setTouched] = useState(false);
-  const hasError = touched && required && !value;
+
+  const validateField = () => {
+    let errorMessage = '';
+
+    if (required && !value.trim()) {
+      errorMessage = `${label} is required`;
+    } else if (validate) {
+      const validationError = validate(value.trim());
+
+      if (validationError) {
+        errorMessage = validationError;
+      }
+    }
+
+    setError(errorMessage);
+  };
+
+  const handleBlur = () => {
+    setTouched(true);
+    validateField();
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+
+    if (touched) {
+      validateField();
+    }
+  };
 
   return (
     <div className="field">
-      <label className="label" htmlFor={id}>
-        {label}
-      </label>
+      <label className="label">{label}</label>
 
       <div className="control">
         <input
-          type="text"
-          id={id}
-          data-cy={`movie-${name}`}
-          className={classNames('input', {
-            'is-danger': hasError,
-          })}
-          placeholder={placeholder}
+          {...rest} // ← data-cy тепер на input
+          name={name}
+          className={`input ${error ? 'is-danger' : ''}`}
           value={value}
-          onChange={event => onChange(event.target.value)}
-          onBlur={() => setTouched(true)}
+          onChange={handleChange}
+          onBlur={handleBlur}
         />
       </div>
 
-      {hasError && <p className="help is-danger">{`${label} is required`}</p>}
+      {error && <p className="help is-danger">{error}</p>}
     </div>
   );
 };
