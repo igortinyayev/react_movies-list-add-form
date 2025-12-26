@@ -7,7 +7,7 @@ interface TextFieldProps {
   onChange: (value: string) => void;
   required?: boolean;
   validate?: (value: string) => string | null;
-  [key: string]: unknown; // ← для data-cy
+  [key: string]: unknown;
 }
 
 export const TextField: React.FC<TextFieldProps> = ({
@@ -17,7 +17,7 @@ export const TextField: React.FC<TextFieldProps> = ({
   onChange,
   required = false,
   validate,
-  ...rest // ← data-cy сюди
+  ...rest
 }) => {
   const [error, setError] = useState('');
   const [touched, setTouched] = useState(false);
@@ -43,8 +43,8 @@ export const TextField: React.FC<TextFieldProps> = ({
     validateField();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(event.target.value);
 
     if (touched) {
       validateField();
@@ -57,7 +57,7 @@ export const TextField: React.FC<TextFieldProps> = ({
 
       <div className="control">
         <input
-          {...rest} // ← data-cy тепер на input
+          {...rest}
           name={name}
           className={`input ${error ? 'is-danger' : ''}`}
           value={value}
